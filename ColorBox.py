@@ -30,12 +30,10 @@
 
 '''
 
-
 from Graphics50 import *
 from ColorBox_funcs import *
 import random
 from PIL import *
-
 
 """
 Calls all functions together so the workflow is this:
@@ -47,7 +45,6 @@ Calls all functions together so the workflow is this:
 - Program then writes these shapes to the window and displays them
 - Program will save new image as collage.
 """
-
 """
 Tasks/Functions needed:
 1. Create GUI window for user inputs.
@@ -103,9 +100,10 @@ class ColorBox:
             "powder blue",
         ]
 
-        self.circle_toggle = 1
-        self.tri_toggle = 1
-        self.rect_toggle = 1
+        self._circle_toggle = 1
+        self._tri_toggle = 1
+        self._rect_toggle = 1
+        self._user_entry = None
         self._GUI_setup()  # Set up GUI elements
 
     def btn_check(self):
@@ -113,16 +111,19 @@ class ColorBox:
         Checks for click within buttons and performs appropriate actions if true
         """
 
-        if btn_clicked(self.pt, self.btn_Gen):
+        if btn_clicked(self.user_click, self.btn_Gen):
             self.click_info.setText("GENERATING...")
             self.click_info.setTextColor(color_rgb(235, 219, 178))
             # self.pt = self.win.getMouse()        # Get click, delays quit
             return True  # Indicates to main that quit clicked
 
-        if btn_clicked(self.pt, self.btn_Quit):
+        if btn_clicked(self.user_click, self.btn_Quit):
             self.click_info.setText("QUITTING...")
             # self.pt = self.win.getMouse()        # Get click, delays quit
             return False  # Indicates to main that quit clicked
+
+        if btn_clicked(self.user_click, self.btn_Submit):
+            self._getEntryNum()
 
     def display(self, palette=-1):
         """
@@ -135,16 +136,16 @@ class ColorBox:
         self.click_info.setTextColor(color_rgb(235, 219, 178))
 
         while True:  # Main While Loop
-            self.pt = self.win.getMouse()
-            n = self._getEntryNum()
-            if n == None:
-                n = 0
+            self.user_click = self.win.getMouse()
 
             if self.btn_check() == False:
                 break
 
             if self.btn_check() == True:
-                self.drawer(n)
+                if self._user_entry != None:
+                    self.drawer(self._user_entry)
+                else:
+                    continue
 
     def _getEntryNum(self):
         """
@@ -157,33 +158,43 @@ class ColorBox:
 
         n = self.entryBox.getText()
 
-        if n[:3] == "circ":
-            self.circle_toggle -= 1 - self.circle_toggle
-            if self.circle_toggle == 0:
+        if n == "":
+            return
+
+        if n[:4] == "circ":
+            self._circle_toggle = 1 - self._circle_toggle
+            print("wait what's going on")
+            if self._circle_toggle == 0:
                 self.click_info.setText("Circles Off")
+                return
             else:
                 self.click_info.setText("Circles On")
+                return
 
-        if n[:3] == "rect":
-            self.rect_toggle -= 1 - self.rect_toggle
-            if self.circle_toggle == 0:
+        if n[:4] == "rect":
+            self._rect_toggle = 1 - self._rect_toggle
+            if self._rect_toggle == 0:
                 self.click_info.setText("Rectangles Off")
+                return
             else:
                 self.click_info.setText("Rectangles On")
+                return
 
-        if n[:2] == "tri":
-            self.circle_toggle -= 1 - self.circle_toggle
-            if self.circle_toggle == 0:
+        if n[:3] == "tri":
+            self._tri_toggle = 1 - self._tri_toggle
+            if self._tri_toggle == 0:
                 self.click_info.setText("Triangles Off")
+                return
             else:
                 self.click_info.setText("Triangles On")
+                return
 
-        try:
-            n = self.entryBox.getText()
-            n = int(n)
-            return n
-        except:
-            self.click_info.setText("Error, Try Again")
+        else:
+            try:
+                self._user_entry = int(self.entryBox.getText())
+                self.click_info.setText("Number Chosen.")
+            except:
+                self.click_info.setText("Error, Try Again")
 
     def _GUI_setup(self):
         """
@@ -225,6 +236,16 @@ class ColorBox:
         )
         self.entryBox.draw(self.win)
 
+        self.btn_Submit = btn_create(
+            self.win,
+            self.WIN_W * 0.5 + 10,
+            self.WIN_H + 30,
+            70,
+            20,
+            "submit",
+            "small",
+        )  # submit btn
+
         return
 
     def _buttons_for_GUI(self):
@@ -260,7 +281,8 @@ class ColorBox:
         Function generates amount of triangles, sizes, and placement
         in the window.
         """
-
+        if self._tri_toggle == 0:
+            pass
         tri_coords = self._random_coord_generator(3)
 
         t = Polygon(
@@ -391,7 +413,7 @@ class ColorBox:
 
 
 def test():
-    color_box = ColorBox(500, 500, "ColorBox")
+    color_box = ColorBox(1000, 1000, "ColorBox")
     color_box.display("gruvbox")
 
     # color_box.win.getMouse()
