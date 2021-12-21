@@ -47,13 +47,18 @@ Calls all functions together so the workflow is this:
 """
 """
 Tasks/Functions needed:
-1. Create GUI window for user inputs.
-2. Get user inputs
-3. Use user inputs for PIL canvas
-4. Generate shapes and colors.
-5. Put all shapes and colors onto PIL canvas
-6. Display and Save PIL canvas
+1. Create GUI window for user inputs. - done
+2. Get user inputs - done
+3. Generate shapes and colors. - done
+4. Add secret options.
+   - Toggles for shapes, secret popcorn modes, palette changes
+   - Likely entered through the entry box. Dropdowns don't exist for me yet :^) 
 
+TODO:
+- Submit button is grabbing input twice somehow, not sure what's going on.
+
+- Split long functions into helper functions. 
+    - Especially the GUI setup.
 """
 
 
@@ -152,8 +157,6 @@ class ColorBox:
         function for returning number from the entrybox for number of shapes.
 
         # TODO
-        # Add in selection for shapes. with feedback eg.  "{shape} off"
-        # MAYBE ADD THIS AS ITS OWN FUNCTION
         """
 
         n = self.entryBox.getText()
@@ -195,6 +198,10 @@ class ColorBox:
                 self.click_info.setText("Number Chosen.")
             except:
                 self.click_info.setText("Error, Try Again")
+
+        def _shape_toggler(self, phrase):
+
+            return
 
     def _GUI_setup(self):
         """
