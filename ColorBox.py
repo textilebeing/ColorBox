@@ -103,6 +103,9 @@ class ColorBox:
             "powder blue",
         ]
 
+        self.circle_toggle = 1
+        self.tri_toggle = 1
+        self.rect_toggle = 1
         self._GUI_setup()  # Set up GUI elements
 
     def btn_check(self):
@@ -149,7 +152,32 @@ class ColorBox:
 
         # TODO
         # Add in selection for shapes. with feedback eg.  "{shape} off"
+        # MAYBE ADD THIS AS ITS OWN FUNCTION
         """
+
+        n = self.entryBox.getText()
+
+        if n[:3] == "circ":
+            self.circle_toggle -= 1 - self.circle_toggle
+            if self.circle_toggle == 0:
+                self.click_info.setText("Circles Off")
+            else:
+                self.click_info.setText("Circles On")
+
+        if n[:3] == "rect":
+            self.rect_toggle -= 1 - self.rect_toggle
+            if self.circle_toggle == 0:
+                self.click_info.setText("Rectangles Off")
+            else:
+                self.click_info.setText("Rectangles On")
+
+        if n[:2] == "tri":
+            self.circle_toggle -= 1 - self.circle_toggle
+            if self.circle_toggle == 0:
+                self.click_info.setText("Triangles Off")
+            else:
+                self.click_info.setText("Triangles On")
+
         try:
             n = self.entryBox.getText()
             n = int(n)
@@ -178,7 +206,7 @@ class ColorBox:
 
         self.btn_Gen = btn_create(
             self.win, 0, self.WIN_H, self.WIN_W * 0.33, 50, "GENERATE"
-        )  # Gen btn
+        )  # Generate btn
 
         self.btn_Quit = btn_create(
             self.win,
@@ -187,15 +215,22 @@ class ColorBox:
             self.WIN_W * 0.34,
             50,
             "QUIT",
-        )  # Reset btn
+        )  # Quit btn
 
         self.click_info = Text(Point(self.WIN_W * 0.5, self.WIN_H + 20), " ")
         self.click_info.draw(self.win)  # Display click_info
 
-        self.entryBox = Entry(Point(self.WIN_W * 0.5, self.WIN_H + 40), 5)
+        self.entryBox = Entry(
+            Point((self.WIN_W * 0.5) - 35, self.WIN_H + 40), 10
+        )
         self.entryBox.draw(self.win)
 
         return
+
+    def _buttons_for_GUI(self):
+        """
+        Creates the Quit, Submit, and Generate buttons.
+        """
 
     def circ_gen(self):
         """
@@ -226,15 +261,15 @@ class ColorBox:
         in the window.
         """
 
-        p1x = random.randint(0, self.WIN_W)
-        p2x = random.randint(0, self.WIN_W)
-        p3x = random.randint(0, self.WIN_W)
-        p1y = random.randint(0, self.WIN_H)
-        p2y = random.randint(0, self.WIN_H)
-        p3y = random.randint(0, self.WIN_H)
+        tri_coords = self._random_coord_generator(3)
 
-        p = Polygon(Point(p1x, p1y), Point(p2x, p2y), Point(p3x, p3y))
-        self._color_set_and_fill(p)
+        t = Polygon(
+            Point(tri_coords[0][0], tri_coords[1][0]),
+            Point(tri_coords[0][1], tri_coords[1][1]),
+            Point(tri_coords[0][2], tri_coords[1][2]),
+        )
+
+        self._color_set_and_fill(t)
 
     def oval_gen(self):
         x1 = random.randint(0, self.WIN_W)
@@ -242,12 +277,13 @@ class ColorBox:
         y2 = random.randint(y1, self.WIN_H)
         x2 = random.randint(x1, self.WIN_W)
 
-        if (abs(x1 - x2)) < 100:
+        if abs(x1 - x2) < 100:
             x1 -= 20
-        if (abs(y1 - y2)) < 100:
+        if abs(y1 - y2) < 100:
             y1 -= 20
 
         o = Oval(Point(x1, y1), Point(x2, y2))
+
         self._color_set_and_fill(o)
 
     def poly_gen(self):
@@ -355,8 +391,7 @@ class ColorBox:
 
 
 def test():
-    color_box = ColorBox(100, 100, "ColorBox v2 - NEW (With Buttons!)")
-    color_box._random_coord_generator(4)
+    color_box = ColorBox(500, 500, "ColorBox")
     color_box.display("gruvbox")
 
     # color_box.win.getMouse()
