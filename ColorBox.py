@@ -34,6 +34,7 @@ from Graphics50 import *
 from ColorBox_funcs import *
 import random
 from PIL import *
+import logging
 
 """
 Calls all functions together so the workflow is this:
@@ -70,9 +71,7 @@ class ColorBox:
 
     """
 
-    def __init__(
-        self, WIN_H=500, WIN_W=500, WIN_TITLE="ColorBox v2", palette=-1
-    ):
+    def __init__(self, WIN_H=500, WIN_W=500, palette=None):
         """
         with the __init__, the object establishes it's size and title.
         it also establishes some constants that will be used throughout the
@@ -85,33 +84,15 @@ class ColorBox:
             self.WIN_H = WIN_H
             self.WIN_W = WIN_W
 
-        self.WIN_TITLE = WIN_TITLE
+        self.WIN_TITLE = "ColorBox v2"
         self.BOTTOM = 50
-        self.COLORS = [
-            "black",
-            "red",
-            "green",
-            "blue",
-            "white",
-            "beige",
-            "blue violet",
-            "dark olive green",
-            "dark orange",
-            "deep pink",
-            "forest green",
-            "lavender",
-            "khaki",
-            "rebecca purple",
-            "plum",
-            "peru",
-            "powder blue",
-        ]
 
         self.palette = palette
         self._circle_toggle = 1
         self._tri_toggle = 1
         self._rect_toggle = 1
         self._user_entry = None
+        self.delay = 0.1
         self._GUI_setup()  # Set up GUI elements
 
     def btn_check(self):
@@ -145,11 +126,11 @@ class ColorBox:
         while True:  # Main While Loop
             self.user_click = self.win.getMouse()
 
-            if self.btn_check() == False:
+            if self.btn_check() is False:
                 break
 
-            elif self.btn_check() == True:
-                if self._user_entry != None:
+            elif self.btn_check() is True:
+                if self._user_entry is not None:
                     self.drawer(self._user_entry)
 
             elif self.btn_check() == -1:
@@ -167,49 +148,78 @@ class ColorBox:
         if n == "":
             return
 
-        if n == "nodelay":
-            self.delay = time.sleep(0)
-            self.click_info.setText("Delay Off")
+        if self._entryCheck_delay(n):
             return
+        else:
+            pass
+
+        if self._entryCheck_oval_toggle(n):
+            return
+        else:
+            pass
+
+        if self._entryCheck_rect_toggle(n):
+            return
+        else:
+            pass
+
+        if self._entryCheck_tri_toggle(n):
+            return
+        else:
+            pass
+
+        # if self._entryCheck_poly_toggle(n):
+        #    return
+        # else:
+        #    pass
+
+        try:
+            self._user_entry = int(self.entryBox.getText())
+            self.click_info.setText("Number Chosen.")
+        except ValueError:
+            self.click_info.setText("Error, Try Again")
+
+    def _entryCheck_delay(self, n):
+        if n == "nodelay":
+            self.delay = 0
+            self.click_info.setText("Delay Off")
+            logging.info("delay set to 0")
+            return True
 
         elif n == "delay":
-            self.delay = time.sleep(0.01)
+            self.delay = 0.01
             self.click_info.setText("Delay On")
-            return
+            return True
 
-        if n[:4] == ("oval" or "circ"):
+    def _entryCheck_oval_toggle(self, n):
+        if n[:4].lower() == "oval":
             self._circle_toggle = 1 - self._circle_toggle
             if self._circle_toggle == 0:
                 self.click_info.setText("Ovals Off")
-                return
+                return True
             else:
-                self.click_info.setText("Circles On")
-                return
+                self.click_info.setText("Ovals On")
+                return True
 
-        if n[:4] == "rect":
+    def _entryCheck_rect_toggle(self, n):
+        if n[:4].lower() == "rect":
             self._rect_toggle = 1 - self._rect_toggle
             if self._rect_toggle == 0:
                 self.click_info.setText("Rectangles Off")
-                return
+                return True
             else:
                 self.click_info.setText("Rectangles On")
-                return
+                return True
 
+    def _entryCheck_tri_toggle(self, n):
         if n[:3] == "tri":
             self._tri_toggle = 1 - self._tri_toggle
             if self._tri_toggle == 0:
                 self.click_info.setText("Triangles Off")
-                return
+                return True
             else:
                 self.click_info.setText("Triangles On")
-                return
-
-        else:
-            try:
-                self._user_entry = int(self.entryBox.getText())
-                self.click_info.setText("Number Chosen.")
-            except:
-                self.click_info.setText("Error, Try Again")
+                return True
 
     def _GUI_setup(self):
         """
@@ -310,7 +320,7 @@ class ColorBox:
         self._color_set_and_fill(c)
 
     def _color_set_and_fill(self, shape):
-        if self.palette == -1:
+        if self.palette is None:
             color = self._color_gen()
         else:
             color = self._palette(self.palette)
@@ -416,17 +426,15 @@ class ColorBox:
         """
         # TODO: ADD BACKGROUND (WITH PALETTTE OPTION)
 
-        self.delay = time.sleep(0.01)
-
         for i in range(n):
             self.rect_gen()
-            self.delay
+            time.sleep(self.delay)
             self.tri_gen()
-            self.delay
+            time.sleep(self.delay)
             self.oval_gen()
-            self.delay
+            time.sleep(self.delay)
             # self.poly_gen()
-            # time.sleep(0.01)
+            time.sleep(self.delay)
 
         self.click_info.setTextColor(color_rgb(235, 219, 178))
         self.click_info.setText("Done.")
@@ -462,9 +470,19 @@ class ColorBox:
 
 
 def test():
-    color_box = ColorBox(1000, 1000, "", "gruvbox")
+    color_box = ColorBox(500, 500, "gruvbox")
     color_box.display()
     color_box.win.close()
+
+
+# ------
+# debugging code
+
+
+def debug_config():
+    level = logging.DEBUG
+    fmt = "[%(levelname)s] %(asctime)s = %(message)s"
+    logging.basicConfig(level=level, format=fmt)
 
 
 test()
