@@ -1,5 +1,5 @@
-#print("GUI_Funcs_L6F21.py  1.03  211015  S. T. U. Dent") # VER TO BE FIXED
-'''*****************************************************************************
+# print("GUI_Funcs_L6F21.py  1.03  211015  S. T. U. Dent") # VER TO BE FIXED
+"""*****************************************************************************
  This provides a few constants and support functions for the graphics.py-based 
  GUI labs, to be completed, as well as a bit of test code at the bottom:
  - COLORS = ( 'black' ... )
@@ -17,72 +17,87 @@ EX. USAGE
  
 DEPENDENCIES
  - Graphics50.py
-*****************************************************************************'''
+*****************************************************************************"""
 
 from Graphics50 import *
 
-COLORS = [ 'black', 'red', 'green', 'bluie', 'white' ]
+COLORS = ["black", "red", "green", "bluie", "white"]
 
 
-'''-----------------------------------------------------------------------------
+"""-----------------------------------------------------------------------------
  SYNTAX: (Rect, Text) = btn_create(win, x, y, w, h, txt)
  This returns a tuple consisting of a Rectangle and Text objects, defined by
  the supplied parameters:
   - win          : GraphWin-type window in which to crreate the button
   - x1, y1, w, h : upper-left corner, width, height of Rectangle object
   - txt          : string displayed centered inside Rectangle
------------------------------------------------------------------------------'''
-def btn_create(win, x, y, w, h, txt):
-    rect = Rectangle(Point(x, y), Point(x+w, y+h))
+-----------------------------------------------------------------------------"""
+
+
+def btn_create(win, x, y, w, h, txt, modifier=-1):
+    rect = Rectangle(Point(x, y), Point(x + w, y + h))
     rect.draw(win)
     rect.setFill(color_rgb(146, 131, 116))
-    text = Text( rect.getCenter() , txt)
-    text.setStyle('bold')
-    text.setFace('helvetica')
+    text = Text(rect.getCenter(), txt)
+    text.setStyle("bold")
+    text.setFace("helvetica")
     text.setSize(18)
     text.setFill(color_rgb(235, 219, 178))
     text.draw(win)
-    return (rect,  text)       # Call this tuple a "button"
 
-'''-----------------------------------------------------------------------------
+    if modifier == "small":
+        text.setSize(10)
+        text.setStyle("normal")
+    return (rect, text)  # Call this tuple a "button"
+
+
+"""-----------------------------------------------------------------------------
  SYNTAX: bool = in_Rectangle(pt, r) : returns True if pt is inside Rectangle r
  IMP'T this assumes that r.P2() returns (x, y) coordinates which are to the
  right and down relative to r.P1().
------------------------------------------------------------------------------'''
+-----------------------------------------------------------------------------"""
+
+
 def in_Rectangle(pt, r):
-    x1, y1 = r.getP1().x , r.getP1().y
-    x2, y2 = r.getP2().x , r.getP2().y
+    x1, y1 = r.getP1().x, r.getP1().y
+    x2, y2 = r.getP2().x, r.getP2().y
     return x1 < pt.x < x2 and y1 < pt.y < y2
 
-'''-----------------------------------------------------------------------------
+
+"""-----------------------------------------------------------------------------
  SYNTAX: bool = btn_clicked(pt, btn) : returns True if pt.x and pt.y are within
  the boundaries of the Rectangle component of btn, where: btn: [Rectangle, Text]
------------------------------------------------------------------------------'''
+-----------------------------------------------------------------------------"""
+
+
 def btn_clicked(pt, btn):
-    r = btn[0]                             # Recall: btn: (Rectangel, Text)
-    p1x, p1y = r.getP1().x, r.getP1().y    # P1: Upper left corner
-    p2x, p2y = r.getP2().x, r.getP2().y    # P2: Lower right corner
+    r = btn[0]  # Recall: btn: (Rectangel, Text)
+    p1x, p1y = r.getP1().x, r.getP1().y  # P1: Upper left corner
+    p2x, p2y = r.getP2().x, r.getP2().y  # P2: Lower right corner
     x, y = pt.x, pt.y
     return p1x < x < p2x and p1y < y < p2y
 
 
-
-'''-----------------------------------------------------------------------------
+"""-----------------------------------------------------------------------------
 SYNTAX: bool = in_Circle(pt, c) : returns True if Point pt is inside Circle c
 i.e. (pt.x - c.getCircle().x)^2 + (pt.y - c.getCircle().y)^2  <  c.getRadius()^2
 REFs
 - Khan Academy - Circle equation 
   https://www.khanacademy.org/math/geometry/hs-geo-circles
          /hs-geo-circle-expanded-equation/a/circle-equation-review
------------------------------------------------------------------------------'''
-def  in_Circle(pt, c):
+-----------------------------------------------------------------------------"""
+
+
+def in_Circle(pt, c):
     center = c.getCenter()
-    distance = ((pt.getX() - center.getX()) ** 2 +\
-                (pt.getY() - center.getY())** 2) ** 0.5
-    
+    distance = (
+        (pt.getX() - center.getX()) ** 2 + (pt.getY() - center.getY()) ** 2
+    ) ** 0.5
+
     return distance < c.radius
 
-'''-----------------------------------------------------------------------------
+
+"""-----------------------------------------------------------------------------
  SYNTAX: bool = in_Triangle(pt, A, B, C)     1.03  190908
  Returns True if Point pt is inside triangle defined by Point objects A, B, C.
  
@@ -120,44 +135,53 @@ def  in_Circle(pt, c):
  - Barycentric Coordinates and Point in Triangle Tests 
    https://blogs.msdn.microsoft.com/rezanour/2011/08/07
           /barycentric-coordinates-and-point-in-triangle-tests/ 
------------------------------------------------------------------------------'''
+-----------------------------------------------------------------------------"""
+
+
 def in_Triangle(pt, A, B, C):
     Ax, Bx, Cx, Dx = A.getX(), B.getX(), C.getX(), pt.getX()
     Ay, By, Cy, Dy = A.getY(), B.getY(), C.getY(), pt.getY()
-    det = (Cy-Ay)*(Bx-Ax) - (Ay-By)*(Ax-Cx)
-    u = ( (Cy-Ay)*(Dx-Ax) + (Ax-Cx)*(Dy-Ay) ) / det
-    v = ( (Ay-By)*(Dx-Ax) + (Bx-Ax)*(Dy-Ay) ) / det
-    #print('u, v = ' + str((u, v)))                         # Dev check
+    det = (Cy - Ay) * (Bx - Ax) - (Ay - By) * (Ax - Cx)
+    u = ((Cy - Ay) * (Dx - Ax) + (Ax - Cx) * (Dy - Ay)) / det
+    v = ((Ay - By) * (Dx - Ax) + (Bx - Ax) * (Dy - Ay)) / det
+    # print('u, v = ' + str((u, v)))                         # Dev check
 
     return u > 0 and v > 0 and (u + v < 1)
 
-#===============================================================================
+
+# ===============================================================================
 # QK TEST CODE
-if __name__ == '__main__':
-    WIN_W , WIN_H = 400, 400
-    win = GraphWin("GUI_Funcs  2021/10/15", WIN_W , WIN_H)
-    
-    A, B, C = Point(200, 100) , Point(300, 200) , Point(100, 300)
+if __name__ == "__main__":
+    WIN_W, WIN_H = 400, 400
+    win = GraphWin("GUI_Funcs  2021/10/15", WIN_W, WIN_H)
+
+    A, B, C = Point(200, 100), Point(300, 200), Point(100, 300)
     p = Polygon(A, B, C).draw(win)
-    
-    t = Text(Point(WIN_W//2, WIN_H-40), 
-             "Click anywhere\non triangle\nor near here to Quit!").draw(win)
-    
+
+    t = Text(
+        Point(WIN_W // 2, WIN_H - 40),
+        "Click anywhere\non triangle\nor near here to Quit!",
+    ).draw(win)
+
     while True:
         pt = win.getMouse()
-        
-        if t.getAnchor().x -10 < pt.x < t.getAnchor().x + 10  and \
-           t.getAnchor().y -10 < pt.y < t.getAnchor().y + 10:
+
+        if (
+            t.getAnchor().x - 10 < pt.x < t.getAnchor().x + 10
+            and t.getAnchor().y - 10 < pt.y < t.getAnchor().y + 10
+        ):
             t.setText("CLICK ONCE MORE TO EXIT")
             break
-        
+
         # if in_Triangle(pt, A, B, C):            # A, B, C: triangle vertices
-        # Python trick: Polygon.getPoints() gets list of Point's, and the star 
+        # Python trick: Polygon.getPoints() gets list of Point's, and the star
         # "unpacks" to 3 separate Point objects for the 3 parameters:
         if in_Triangle(pt, *p.getPoints()):
-            if p.config['fill'] == "red":  p.setFill('green')
-            else                        :  p.setFill('red')
-    
+            if p.config["fill"] == "red":
+                p.setFill("green")
+            else:
+                p.setFill("red")
+
     pt = win.getMouse()
     win.close()
 

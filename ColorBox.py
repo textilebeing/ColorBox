@@ -30,12 +30,11 @@
 
 '''
 
-
 from Graphics50 import *
 from ColorBox_funcs import *
 import random
 from PIL import *
-
+import logging
 
 """
 Calls all functions together so the workflow is this:
@@ -47,16 +46,20 @@ Calls all functions together so the workflow is this:
 - Program then writes these shapes to the window and displays them
 - Program will save new image as collage.
 """
-
 """
 Tasks/Functions needed:
-1. Create GUI window for user inputs.
-2. Get user inputs
-3. Use user inputs for PIL canvas
-4. Generate shapes and colors.
-5. Put all shapes and colors onto PIL canvas
-6. Display and Save PIL canvas
+1. Create GUI window for user inputs. - done
+2. Get user inputs - done
+3. Generate shapes and colors. - done
+4. Add secret options.
+   - Toggles for shapes, secret popcorn modes, palette changes
+   - Likely entered through the entry box. Dropdowns don't exist for me yet :^) 
 
+TODO:
+- Submit button is grabbing input twice somehow, not sure what's going on.
+
+- Split long functions into helper functions. 
+    - Especially the GUI setup.
 """
 
 
@@ -68,7 +71,7 @@ class ColorBox:
 
     """
 
-    def __init__(self, WIN_H=500, WIN_W=500, WIN_TITLE="ColorBox v2"):
+    def __init__(self, WIN_H=500, WIN_W=500, palette=None):
         """
         with the __init__, the object establishes it's size and title.
         it also establishes some constants that will be used throughout the
@@ -81,31 +84,15 @@ class ColorBox:
             self.WIN_H = WIN_H
             self.WIN_W = WIN_W
 
-        self.WIN_TITLE = WIN_TITLE
+        self.WIN_TITLE = "ColorBox v2"
         self.BOTTOM = 50
-        self.COLORS = [
-            "black",
-            "red",
-            "green",
-            "blue",
-            "white",
-            "beige",
-            "blue violet",
-            "dark olive green",
-            "dark orange",
-            "deep pink",
-            "forest green",
-            "lavender",
-            "khaki",
-            "rebecca purple",
-            "plum",
-            "peru",
-            "powder blue",
-        ]
 
-        self.circle_toggle = 1
-        self.tri_toggle = 1
-        self.rect_toggle = 1
+        self.palette = palette
+        self._circle_toggle = 1
+        self._tri_toggle = 1
+        self._rect_toggle = 1
+        self._user_entry = None
+        self.delay = 0.1
         self._GUI_setup()  # Set up GUI elements
 
     def btn_check(self):
@@ -113,96 +100,151 @@ class ColorBox:
         Checks for click within buttons and performs appropriate actions if true
         """
 
-        if btn_clicked(self.pt, self.btn_Gen):
+        if btn_clicked(self.user_click, self.btn_Gen):
             self.click_info.setText("GENERATING...")
             self.click_info.setTextColor(color_rgb(235, 219, 178))
             # self.pt = self.win.getMouse()        # Get click, delays quit
             return True  # Indicates to main that quit clicked
 
-        if btn_clicked(self.pt, self.btn_Quit):
+        if btn_clicked(self.user_click, self.btn_Quit):
             self.click_info.setText("QUITTING...")
             # self.pt = self.win.getMouse()        # Get click, delays quit
             return False  # Indicates to main that quit clicked
 
-    def display(self, palette=-1):
+        if btn_clicked(self.user_click, self.btn_Submit):
+            return -1
+
+    def display(self):
         """
         Main display function for the color box, contains the main While loop
         for display and GUI functions. Maybe temporary?
         """
 
-        self.palette = palette
         self.click_info.setText("Enter a Number")
         self.click_info.setTextColor(color_rgb(235, 219, 178))
 
         while True:  # Main While Loop
-            self.pt = self.win.getMouse()
-            n = self._getEntryNum()
-            if n == None:
-                n = 0
+            self.user_click = self.win.getMouse()
 
-            if self.btn_check() == False:
+            if self.btn_check() is False:
                 break
 
-            if self.btn_check() == True:
-                self.drawer(n)
+            elif self.btn_check() is True:
+                if self._user_entry is not None:
+                    self.drawer(self._user_entry)
+
+            elif self.btn_check() == -1:
+                self._getEntryNum()
 
     def _getEntryNum(self):
         """
         function for returning number from the entrybox for number of shapes.
 
         # TODO
-        # Add in selection for shapes. with feedback eg.  "{shape} off"
-        # MAYBE ADD THIS AS ITS OWN FUNCTION
         """
 
         n = self.entryBox.getText()
 
-        if n[:3] == "circ":
-            self.circle_toggle -= 1 - self.circle_toggle
-            if self.circle_toggle == 0:
-                self.click_info.setText("Circles Off")
-            else:
-                self.click_info.setText("Circles On")
+        if n == "":
+            return
 
-        if n[:3] == "rect":
-            self.rect_toggle -= 1 - self.rect_toggle
-            if self.circle_toggle == 0:
-                self.click_info.setText("Rectangles Off")
-            else:
-                self.click_info.setText("Rectangles On")
+        if self._entryCheck_delay(n):
+            return
+        else:
+            pass
 
-        if n[:2] == "tri":
-            self.circle_toggle -= 1 - self.circle_toggle
-            if self.circle_toggle == 0:
-                self.click_info.setText("Triangles Off")
-            else:
-                self.click_info.setText("Triangles On")
+        if self._entryCheck_oval_toggle(n):
+            return
+        else:
+            pass
+
+        if self._entryCheck_rect_toggle(n):
+            return
+        else:
+            pass
+
+        if self._entryCheck_tri_toggle(n):
+            return
+        else:
+            pass
+
+        # if self._entryCheck_poly_toggle(n):
+        #    return
+        # else:
+        #    pass
 
         try:
-            n = self.entryBox.getText()
-            n = int(n)
-            return n
-        except:
+            self._user_entry = int(self.entryBox.getText())
+            self.click_info.setText("Number Chosen.")
+        except ValueError:
             self.click_info.setText("Error, Try Again")
+
+    def _entryCheck_delay(self, n):
+        if n == "nodelay":
+            self.delay = 0
+            self.click_info.setText("Delay Off")
+            logging.info("delay set to 0")
+            return True
+
+        elif n == "delay":
+            self.delay = 0.01
+            self.click_info.setText("Delay On")
+            return True
+
+    def _entryCheck_oval_toggle(self, n):
+        if n[:4].lower() == "oval":
+            self._circle_toggle = 1 - self._circle_toggle
+            if self._circle_toggle == 0:
+                self.click_info.setText("Ovals Off")
+                return True
+            else:
+                self.click_info.setText("Ovals On")
+                return True
+
+    def _entryCheck_rect_toggle(self, n):
+        if n[:4].lower() == "rect":
+            self._rect_toggle = 1 - self._rect_toggle
+            if self._rect_toggle == 0:
+                self.click_info.setText("Rectangles Off")
+                return True
+            else:
+                self.click_info.setText("Rectangles On")
+                return True
+
+    def _entryCheck_tri_toggle(self, n):
+        if n[:3] == "tri":
+            self._tri_toggle = 1 - self._tri_toggle
+            if self._tri_toggle == 0:
+                self.click_info.setText("Triangles Off")
+                return True
+            else:
+                self.click_info.setText("Triangles On")
+                return True
 
     def _GUI_setup(self):
         """
         user defines the size of "drawing" that they want generated
         """
 
-        self.win = GraphWin(
-            self.WIN_TITLE, self.WIN_W, self.WIN_H + self.BOTTOM
-        )
+        # Set up window
+        self._window_creation()
 
-        background = Rectangle(Point(0, 0), Point(self.WIN_W, self.WIN_H))
-        background.setFill(color_rgb(60, 56, 54))
-        background.draw(self.win)
+        # Create background, changes based on palette chosen.
+        self._background_creation()
 
-        self.bottom = Rectangle(
-            Point(0, self.WIN_H), Point(self.WIN_W, self.WIN_H + 50)
-        )
-        self.bottom.setFill(color_rgb(146, 131, 116))
-        self.bottom.draw(self.win)
+        # Create Generate, Quit, and Submit buttons
+        self._button_creation()
+
+        # Set Textbox
+        self._textbox_creation()
+
+        # Set Entrybox for GUI
+        self._entrybox_creation()
+
+    def _button_creation(self):
+        """
+        helper function for button creation, sets up generation, quit, and submit buttons
+        """
 
         self.btn_Gen = btn_create(
             self.win, 0, self.WIN_H, self.WIN_W * 0.33, 50, "GENERATE"
@@ -217,20 +259,52 @@ class ColorBox:
             "QUIT",
         )  # Quit btn
 
-        self.click_info = Text(Point(self.WIN_W * 0.5, self.WIN_H + 20), " ")
-        self.click_info.draw(self.win)  # Display click_info
+        self.btn_Submit = btn_create(
+            self.win,
+            self.WIN_W * 0.5 + 10,
+            self.WIN_H + 30,
+            70,
+            20,
+            "submit",
+            "small",
+        )  # submit btn
 
+    def _window_creation(self):
+        """
+        Function Sets up the window, along with the bottom part for buttons.
+        """
+        self.win = GraphWin(
+            self.WIN_TITLE, self.WIN_W, self.WIN_H + self.BOTTOM
+        )
+
+        self.bottom = Rectangle(
+            Point(0, self.WIN_H), Point(self.WIN_W, self.WIN_H + 50)
+        )
+        self.bottom.setFill(color_rgb(146, 131, 116))
+        self.bottom.draw(self.win)
+
+    def _background_creation(self):
+        """
+        Helper function for background creation
+        """
+
+        background = Rectangle(Point(0, 0), Point(self.WIN_W, self.WIN_H))
+
+        # Setting background based on palette
+        if self.palette == "gruvbox":
+            background.setFill(color_rgb(60, 56, 54))
+
+        background.draw(self.win)
+
+    def _entrybox_creation(self):
         self.entryBox = Entry(
             Point((self.WIN_W * 0.5) - 35, self.WIN_H + 40), 10
         )
         self.entryBox.draw(self.win)
 
-        return
-
-    def _buttons_for_GUI(self):
-        """
-        Creates the Quit, Submit, and Generate buttons.
-        """
+    def _textbox_creation(self):
+        self.click_info = Text(Point(self.WIN_W * 0.5, self.WIN_H + 20), " ")
+        self.click_info.draw(self.win)  # Display click_info
 
     def circ_gen(self):
         """
@@ -246,7 +320,7 @@ class ColorBox:
         self._color_set_and_fill(c)
 
     def _color_set_and_fill(self, shape):
-        if self.palette == -1:
+        if self.palette is None:
             color = self._color_gen()
         else:
             color = self._palette(self.palette)
@@ -260,7 +334,8 @@ class ColorBox:
         Function generates amount of triangles, sizes, and placement
         in the window.
         """
-
+        if self._tri_toggle == 0:
+            return
         tri_coords = self._random_coord_generator(3)
 
         t = Polygon(
@@ -276,6 +351,9 @@ class ColorBox:
         y1 = random.randint(0, self.WIN_H)
         y2 = random.randint(y1, self.WIN_H)
         x2 = random.randint(x1, self.WIN_W)
+
+        if self._circle_toggle == 0:
+            return
 
         if abs(x1 - x2) < 100:
             x1 -= 20
@@ -315,6 +393,9 @@ class ColorBox:
 
     def rect_gen(self):
 
+        if self._rect_toggle == 0:
+            return
+
         self.rect_coords = self._random_coord_generator(2)
 
         r = Rectangle(
@@ -343,19 +424,17 @@ class ColorBox:
         function that draws the shapes to the window, can be called again with
         a click in the window, for another drawing.
         """
-        background = Rectangle(Point(0, 0), Point(self.WIN_W, self.WIN_H))
-        background.setFill(color_rgb(60, 56, 54))
-        background.draw(self.win)
+        # TODO: ADD BACKGROUND (WITH PALETTTE OPTION)
 
         for i in range(n):
             self.rect_gen()
-            time.sleep(0.01)
+            time.sleep(self.delay)
             self.tri_gen()
-            time.sleep(0.01)
+            time.sleep(self.delay)
             self.oval_gen()
-            time.sleep(0.01)
+            time.sleep(self.delay)
             # self.poly_gen()
-            # time.sleep(0.01)
+            time.sleep(self.delay)
 
         self.click_info.setTextColor(color_rgb(235, 219, 178))
         self.click_info.setText("Done.")
@@ -391,11 +470,19 @@ class ColorBox:
 
 
 def test():
-    color_box = ColorBox(500, 500, "ColorBox")
-    color_box.display("gruvbox")
-
-    # color_box.win.getMouse()
+    color_box = ColorBox(500, 500, "gruvbox")
+    color_box.display()
     color_box.win.close()
+
+
+# ------
+# debugging code
+
+
+def debug_config():
+    level = logging.DEBUG
+    fmt = "[%(levelname)s] %(asctime)s = %(message)s"
+    logging.basicConfig(level=level, format=fmt)
 
 
 test()
